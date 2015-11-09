@@ -39,11 +39,13 @@ namespace FlightBooker.Host
             {
                 Data.IsVip = true;
                 Console.WriteLine("BECOMING VIP");
+                Bus.Publish(new UpgradeCustomerToVIP {CustomerId = Data.CustomerId});
             }
             else if (this.Data.IsVip == true && this.Data.RunningTotal < 10000)
             {
                 Data.IsVip = false;
                 Console.WriteLine("BECOMING REGULAR");
+                Bus.Publish(new DegradeCustomerToRegular{ CustomerId = Data.CustomerId });
             }
         }
     }
