@@ -8,7 +8,6 @@ namespace FlightBooker.Host
         IAmStartedByMessages<StartBookingCommand>,
         IHandleTimeouts<BookingExpired>
     {
-
         protected override void ConfigureHowToFindSaga
             (SagaPropertyMapper<FlightBookerSagaData> mapper)
         {
@@ -17,31 +16,31 @@ namespace FlightBooker.Host
         }
         public void Handle(StartBookingCommand message)
         {
-            this.Data.CustomerId = message.CustomerId;
-            this.Data.RunningTotal += message.TotalTicketAmount;
+            Data.CustomerId = message.CustomerId;
+            Data.RunningTotal += message.TotalTicketAmount;
 
-            this.RequestTimeout<BookingExpired>(TimeSpan.FromSeconds(30),
-        timeout => timeout.TotalAmount = message.TotalTicketAmount);
+            RequestTimeout<BookingExpired>(TimeSpan.FromSeconds(60),
+            timeout => timeout.TotalAmount = message.TotalTicketAmount);
 
             CheckForPreferredStatusChange();
         }
 
         public void Timeout(BookingExpired state)
         {
-            this.Data.RunningTotal -= state.TotalAmount;
+            Data.RunningTotal -= state.TotalAmount;
 
             CheckForPreferredStatusChange();
         }
 
         private void CheckForPreferredStatusChange()
         {
-            if (this.Data.IsVip == false && this.Data.RunningTotal >= 10000)
+            if (Data.IsVip == false && Data.RunningTotal >= 10000)
             {
                 Data.IsVip = true;
                 Console.WriteLine("BECOMING VIP");
                 Bus.Publish(new UpgradeCustomerToVIP {CustomerId = Data.CustomerId});
             }
-            else if (this.Data.IsVip == true && this.Data.RunningTotal < 10000)
+            else if (Data.IsVip && Data.RunningTotal < 10000)
             {
                 Data.IsVip = false;
                 Console.WriteLine("BECOMING REGULAR");
